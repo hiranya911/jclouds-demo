@@ -62,7 +62,7 @@ public class EC2Demo {
                 System.out.println("===============================================");
                 client.connect();
                 client.put("calculate.py", Payloads.newFilePayload(new File(
-                        "/Users/hiranya/academic/cloud_290b/projects/jcloud-demo/calculate.py")));
+                        "/Users/hiranya/academic/cloud_290b/projects/jclouds-demo/calculate.py")));
                 client.put("s3client.zip", Payloads.newFilePayload(new File(
                         "/Users/hiranya/academic/cloud_290b/projects/s3client.zip")));
 
