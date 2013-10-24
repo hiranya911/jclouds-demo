@@ -31,7 +31,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Properties;
 
-public class S3Demo {
+public class BlobStoreDemo {
 
     public static final String BLOB_PROVIDER = "blob.provider";
     public static final String BLOB_ACCESS_KEY = "blob.access.key";
@@ -40,7 +40,7 @@ public class S3Demo {
 
     public static void main(String[] args) {
         if (args.length != 2) {
-            System.err.println("Usage: S3Demo get|put file");
+            System.err.println("Usage: BlobStoreDemo get|put file");
             return;
         }
 
