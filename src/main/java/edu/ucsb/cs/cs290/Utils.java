@@ -28,7 +28,7 @@ public class Utils {
     public static Properties loadProperties() throws IOException {
         InputStream in = null;
         try {
-            in = EC2Demo.class.getResourceAsStream("/cloud.properties");
+            in = ComputeServiceDemo.class.getResourceAsStream("/cloud.properties");
             Properties properties = new Properties();
             properties.load(in);
             return properties;

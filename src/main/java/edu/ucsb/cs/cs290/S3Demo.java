@@ -53,6 +53,7 @@ public class S3Demo {
             String fileName = args[1];
 
             if ("get".equals(args[0])) {
+                // Download the specified file from the cloud
                 Blob blob = blobStore.getBlob(properties.getProperty(BLOB_CONTAINER), fileName);
                 FileOutputStream outputStream = new FileOutputStream(fileName);
                 blob.getPayload().writeTo(outputStream);
@@ -60,6 +61,7 @@ public class S3Demo {
                 outputStream.close();
                 System.out.println("Downloaded blob: " + fileName);
             } else if ("put".equals(args[0])) {
+                // Upload the specified file to the cloud
                 File file = new File(fileName);
                 Blob blob = blobStore.blobBuilder(file.getName()).payload(file).build();
                 blobStore.putBlob(properties.getProperty(BLOB_CONTAINER), blob);

@@ -37,9 +37,9 @@ import org.jclouds.sshj.config.SshjSshClientModule;
 import java.io.File;
 import java.util.Properties;
 
-public class EC2Demo {
+public class ComputeServiceDemo {
 
-    private static final Logger log = Logger.getLogger(EC2Demo.class);
+    private static final Logger log = Logger.getLogger(ComputeServiceDemo.class);
 
     public static final String CLOUD_PROVIDER = "compute.provider";
     public static final String CLOUD_ACCESS_KEY = "compute.access.key";
@@ -53,32 +53,56 @@ public class EC2Demo {
         SshClient client = null;
 
         try {
+            // Load the cloud.properties files
             Properties properties = Utils.loadProperties();
+
+            // Initialize ComputeServiceContext
             context = initContext(properties);
+
+            // Start a new node (VM) in the cloud
             node = startNode(context, properties);
 
+            // Initialize a SSH client to the VM
             client = context.utils().sshForNode().apply(node);
             if (client != null) {
                 System.out.println("===============================================");
+
+                // Create a SSH connection
                 client.connect();
+
+                // Upload the calculate.py script to the VM
                 client.put("calculate.py", Payloads.newFilePayload(new File(
                         "/Users/hiranya/academic/cloud_290b/projects/jclouds-demo/calculate.py")));
+
+                // Upload the s3client.zip archive to the VM
                 client.put("s3client.zip", Payloads.newFilePayload(new File(
                         "/Users/hiranya/academic/cloud_290b/projects/s3client.zip")));
 
+                // Check the OS version - for demo purposes only
                 runCommand(client, "uname -a");
                 if (OperatingSystemPredicates.supportsApt().apply(node.getOperatingSystem())) {
+                    // Install unzip, python and java on the VM
                     runCommand(client, "sudo apt-get update");
                     runCommand(client, "sudo apt-get install -y unzip python openjdk-6-jre-headless");
                 }
+
+                // Unzip the s3client.zip archive
                 runCommand(client, "unzip s3client.zip");
+
+                // Run the s3client app to download the input.dat file from S3
                 runCommand(client, "sh s3client/bin/run.sh get input.dat");
 
                 String outputFile = "output-" + System.currentTimeMillis() + ".txt";
+
+                // Run calculate.py on input.dat
                 runCommand(client, "python calculate.py input.dat > " + outputFile);
+
+                // Upload the result to S3
                 runCommand(client, "sh s3client/bin/run.sh put " + outputFile);
+
+                // Display the result on screen
                 runCommand(client, "cat " + outputFile);
-                client.disconnect();
+
                 System.out.println("===============================================");
             }
 
@@ -87,9 +111,11 @@ public class EC2Demo {
             e.printStackTrace();
         } finally {
             if (client != null) {
+                // SSH tear down
                 client.disconnect();
             }
             if (node != null) {
+                // Stop the VM we initialized earlier
                 stopNode(context, node);
             }
             if (context != null) {
@@ -112,16 +138,22 @@ public class EC2Demo {
 
     private static NodeMetadata startNode(ComputeServiceContext context,
                                           Properties properties) throws RunNodesException {
+
+        // Specify cloud region (e.g. us-east)
         String region = properties.getProperty(CLOUD_REGION);
+
+        // Specify a VM image to boot from (optional)
         String image = properties.getProperty(CLOUD_IMAGE);
         ComputeService computeService = context.getComputeService();
         Template template;
         if (image != null) {
+            // Start from the specified VM image
             template = computeService.templateBuilder().
                     imageId(region + "/" + image).
                     smallest().
                     build();
         } else {
+            // Start an Ubuntu 12.04 VM (smallest possible)
             template = computeService.templateBuilder().
                     osFamily(OsFamily.UBUNTU).
                     osVersionMatches("12.04").
@@ -129,8 +161,11 @@ public class EC2Demo {
                     smallest().
                     build();
         }
+
+        // Start the VM
         NodeMetadata node = Iterables.getOnlyElement(computeService.createNodesInGroup(
                 "jclouds", 1, template));
+
         if (log.isDebugEnabled()) {
             log.debug("New node started successfully.");
             log.debug("Node ID: " + node.getId());
